@@ -1,5 +1,8 @@
 package exercise1;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,6 +10,8 @@ import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -20,6 +25,14 @@ public class GamerProfile extends Application {
 	private Button btnSubmit = new Button("Submit");
 	private Player player;
 	private List<String> listOfGames = new ArrayList<String>();
+	
+	private PreparedStatement insertPlayerStatement;
+	private Connection conn;
+	
+	private static final String DRIVER = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+	private static final String DATABASE_URL = "jdbc:sqlserver://localhost:1433;";
+	private static final String DATABASE_USER = "lab5user";
+	private static final String DATABASE_PASSWORD = "password";
 	
 	@Override
 	public void start(Stage primaryStage) throws Exception {
@@ -62,7 +75,49 @@ public class GamerProfile extends Application {
 			mainLayout.setBottom(new StackPane(btnSubmit));
 			
 		//Add event handlers to submit button
-		btnSubmit.setOnAction(null);
+		btnSubmit.setOnAction(e -> {
+			try {
+				// Database driver
+				Class.forName(DRIVER);
+				// Set database connection options
+				conn = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
+				
+				//Create the prepared statement for inserting a player
+				insertPlayerStatement = conn.prepareStatement("INSERT INTO Player (first_name, last_name, address, postal_code, province, phone_number) VALUES (?, ?, ?, ?, ?, ?)");
+				
+				//Parameters for the statement
+				insertPlayerStatement.setString(1, firstName.getText());
+				insertPlayerStatement.setString(2, lastName.getText());
+				insertPlayerStatement.setString(3, address.getText());
+				insertPlayerStatement.setString(4, postalCode.getText());
+				insertPlayerStatement.setString(5, province.getText());
+				insertPlayerStatement.setString(6, phoneNumber.getText());
+				
+				//Execute the statement
+				insertPlayerStatement.executeUpdate();
+				
+				//Alert message on player insert success
+				Alert alert = new Alert(AlertType.INFORMATION, "Player has been successfully added!");
+				alert.setHeaderText("Information");
+				alert.setTitle("Player Added");
+				alert.show();
+			}
+			catch (Exception ex) {
+				// Alert message on error
+				Alert alert = new Alert(AlertType.ERROR, ex.getMessage());
+				alert.setHeaderText("Error");
+				alert.setTitle("Error");
+				alert.show();
+			}
+			finally {
+				// Close connection and statement; must be surrounded with try/catch
+				try {
+					insertPlayerStatement.close();
+					conn.close();
+				}
+				catch (Exception ex) {}
+			}	
+		});
 		
 		Scene scene = new Scene(mainLayout);
 			primaryStage.setMinHeight(500);
