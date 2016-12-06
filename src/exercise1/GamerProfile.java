@@ -2,28 +2,25 @@ package exercise1;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
-import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
-import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.control.TextArea;
 
 public class GamerProfile extends Application {
 	private TextField firstName, lastName, address, postalCode, province, phoneNumber;
+	private Button btnSubmit = new Button("Submit");
+	private Player player;
+	private List<String> listOfGames = new ArrayList<String>();
 	
-
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		
@@ -55,9 +52,19 @@ public class GamerProfile extends Application {
 		formPane.add(postalCode, 1, 3);
 		formPane.add(province, 1, 4);
 		formPane.add(phoneNumber, 1, 5);
+
 		
+		//Main Application layout
+		BorderPane mainLayout = new BorderPane();
+			mainLayout.setPadding(new Insets(10, 10, 10, 10));
+			//add formPane to mainLayout
+			mainLayout.setCenter(formPane);
+			mainLayout.setBottom(new StackPane(btnSubmit));
+			
+		//Add event handlers to submit button
+		btnSubmit.setOnAction(null);
 		
-		Scene scene = new Scene(formPane);
+		Scene scene = new Scene(mainLayout);
 			primaryStage.setMinHeight(500);
 			primaryStage.setHeight(500);
 			primaryStage.setMinWidth(350);
@@ -68,7 +75,5 @@ public class GamerProfile extends Application {
 
 	public static void main(String[] args) {
 		launch(args);
-
 	}
-
 }
