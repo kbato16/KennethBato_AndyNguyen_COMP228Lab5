@@ -3,16 +3,19 @@ package exercise1;
 import java.util.List;
 
 public class Player {
+
+	private final String userName;
 	private final String firstName;
 	private final String lastName;
 	private final String address;
 	private final String postalCode;
 	private final String province;
 	private final String phoneNumber;
-	private final List<String> gamesPlayed;
+	private final List<Game> gamesPlayed;
 	
-	public Player(String firstName, String lastName, String address,
-			String postalCode, String province, String phoneNumber, List<String> listOfGames) {
+	public Player( String userName, String firstName, String lastName, String address, 
+			String postalCode, String province, String phoneNumber, List<Game> listOfGames) {
+		this.userName = userName;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.address = address;
@@ -20,6 +23,10 @@ public class Player {
 		this.province = province;
 		this.phoneNumber = phoneNumber;
 		gamesPlayed = listOfGames;
+	}
+
+	public String getUserName() {
+		return userName;
 	}
 
 	public String getFirstName() {
@@ -46,7 +53,7 @@ public class Player {
 		return phoneNumber;
 	}
 
-	public List<String> getGamesPlayed() {
+	public List<Game> getGamesPlayed() {
 		return gamesPlayed;
 	}
 	
