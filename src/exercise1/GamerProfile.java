@@ -259,6 +259,9 @@ public class GamerProfile extends Application {
 				alert.setTitle("Error");
 				alert.show();
 			}
+			
+			//Repopulate the table
+			populateTable();
 				
 		});
 		
@@ -274,7 +277,7 @@ public class GamerProfile extends Application {
 				pst = conn.prepareStatement("INSERT INTO PlayerAndGame (game_id, player_id, playing_date, score) VALUES (?, ?, ?, ?)");
 				
 				//Parameters for the statement
-				pst.setInt(1, listOfGames.getSelectionModel().getSelectedIndex());
+				pst.setInt(1, listOfGames.getSelectionModel().getSelectedIndex() + 1);
 				pst.setString(2, userName.getText());
 				pst.setString(3, playingDate.getText());
 				pst.setString(4, score.getText());
@@ -302,6 +305,12 @@ public class GamerProfile extends Application {
 					conn.close();
 				}
 				catch (Exception ex) {}
+				
+				//Repopulate the table
+				populateTable();
+				
+				playingDate.setText("");
+				score.setText("");
 			}});
 		
 		//When the user makes a selection on the table
