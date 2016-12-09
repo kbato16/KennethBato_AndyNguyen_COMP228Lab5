@@ -336,6 +336,27 @@ public class GamerProfile extends Application {
 			}
 		});
 		
+		//When a game is selected from the listview
+		playersGames.getSelectionModel().selectedItemProperty().addListener(e -> {
+			if (playersGames.getSelectionModel().getSelectedIndex() >= 0) {
+				//Gets the index of the selected game
+				int index = playersGames.getSelectionModel().getSelectedIndex();
+				
+				//Gets the information of the selected player
+				Player selectedPlayer = playerTable.getSelectionModel().getSelectedItem();
+				
+				//Accesses the player's game list
+				List<Game> listGames = selectedPlayer.getGamesPlayed();
+				
+				//Sets the TextArea to the game information
+				gameStats.setText("Score: " + listGames.get(index).getScore() + "\n" + 
+							"Date: " + listGames.get(index).getDate());
+			}
+			else {
+				gameStats.setText("");
+			}
+		});
+		
 		//Populate the player table
 		populateTable();
 		
@@ -375,7 +396,7 @@ public class GamerProfile extends Application {
 				
 				//SQL query for players and games
 				pst = conn.prepareStatement(
-						"SELECT Player.player_id, Game.game_id, Game.game_title "
+						"SELECT Player.player_id, Game.game_id, Game.game_title, playing_date, score "
 						+ "FROM Player "
 						+ "JOIN PlayerAndGame ON Player.player_id = PlayerAndGame.player_id "
 						+ "JOIN Game ON PlayerAndGame.game_id = Game.game_id");
@@ -385,7 +406,7 @@ public class GamerProfile extends Application {
 				while (gameRS.next()) {
 					//If this game record belongs to the player
 					if (gameRS.getString(1).equals(playerRS.getString(1))) {
-						listOfGames.add(new Game(Integer.toString(gameRS.getInt(2)), gameRS.getString(3)));
+						listOfGames.add(new Game(Integer.toString(gameRS.getInt(2)), gameRS.getString(3), gameRS.getString(4), gameRS.getString(5)));
 					}
 				}
 				//Adds a new Player object to the list of players
