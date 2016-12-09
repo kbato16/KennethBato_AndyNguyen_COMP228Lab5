@@ -22,11 +22,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.StackPane;
+
 
 public class GamerProfile extends Application {
 	private TextField userName, firstName, lastName, address, postalCode, province, phoneNumber, playingDate, score;
@@ -60,6 +61,7 @@ public class GamerProfile extends Application {
 		playingDate = new TextField();
 		score = new TextField();
 		
+		
 		GridPane formPane = new GridPane();
 		GridPane.setConstraints(formPane, 10, 10, 10 , 10);
 		btnSubmit.setAlignment(Pos.BASELINE_CENTER);
@@ -90,8 +92,7 @@ public class GamerProfile extends Application {
 			formPane.add(listOfGames, 1, 10);
 			formPane.add(playingDate, 1, 11);
 			formPane.add(score, 1, 12);
-			
-			
+	
 		//Table of players
 		TableView<Player> playerTable = new TableView<>();
 		TableColumn<Player, String> colUserName = new TableColumn<>("User Name");
@@ -126,9 +127,6 @@ public class GamerProfile extends Application {
 		playerTable.getColumns().addAll(colUserName, colFirstName, colLastName, colAddress, colPostalCode, colProvince, colPhoneNumber);
 		
 		//Display players list of played games
-		ListView<String> playersGames = new ListView<>();
-		
-		
 		GridPane buttonPane = new GridPane();
 		buttonPane.setPadding(new Insets(10,10,10,10));
 		buttonPane.setHgap(10);
@@ -136,13 +134,27 @@ public class GamerProfile extends Application {
 		buttonPane.add(btnUpdate,1,0);
 		buttonPane.add(btnDisplay,2,0);
 
-		
+		//Players game info pane
+		GridPane gameInfoPane = new GridPane();
+			gameInfoPane.setPadding(new Insets(10, 10, 0, 10));
+			gameInfoPane.setMinWidth(150);
+			gameInfoPane.setMaxWidth(250);
+		//TextArea to display selected game stats
+		TextArea gameStats = new TextArea();
+			gameStats.setEditable(false);
+		//List of selected players played games
+		ListView<String> playersGames = new ListView<>();
+			gameInfoPane.add(new Label("List of Games: "), 0, 0);
+			gameInfoPane.add(playersGames, 0, 1);
+			gameInfoPane.add(new Label("Game Stats") , 0, 2);
+			gameInfoPane.add(gameStats, 0, 3);
+	
 		//Main Application layout
 		BorderPane mainLayout = new BorderPane();
 			mainLayout.setPadding(new Insets(10, 10, 10, 10));
 			mainLayout.setLeft(formPane);
 			mainLayout.setCenter(playerTable);
-			mainLayout.setRight(playersGames);
+			mainLayout.setRight(gameInfoPane);
 			mainLayout.setBottom(buttonPane);
 			
 		//Add event handlers to submit button
