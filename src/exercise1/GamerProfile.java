@@ -31,10 +31,11 @@ import javafx.scene.layout.StackPane;
 public class GamerProfile extends Application {
 	private TextField userName, firstName, lastName, address, postalCode, province, phoneNumber, playingDate, score;
 	private ObservableList<Player> players = FXCollections.observableArrayList();
+	private ObservableList<String> playersListOfGames = FXCollections.observableArrayList();
 	private ObservableList<String> selectedPlayerGames = FXCollections.observableArrayList();
 	
 	private Button btnSubmit = new Button("Submit");
-	private Button btnDisplay = new Button("Display Information");
+	private Button btnAddGame = new Button("Add Game to User");
 	private Button btnUpdate = new Button("Update Information");
 	private ComboBox<String> listOfGames = new ComboBox<>();
 	
@@ -134,7 +135,7 @@ public class GamerProfile extends Application {
 		buttonPane.setHgap(10);
 		buttonPane.add(btnSubmit,0,0);
 		buttonPane.add(btnUpdate,1,0);
-		buttonPane.add(btnDisplay,2,0);
+		buttonPane.add(btnAddGame,2,0);
 
 		
 		//Main Application layout
@@ -188,7 +189,10 @@ public class GamerProfile extends Application {
 					conn.close();
 				}
 				catch (Exception ex) {}
-			}	
+			}
+			
+			//Repopulate the table
+			populateTable();
 		});
 		
 		//Add event handlers to update button
@@ -213,8 +217,7 @@ public class GamerProfile extends Application {
 					pst.setString(7, userName.getText());
 					
 					//Execute the statement and check if update is successful
-					if (pst.executeUpdate() == 0)
-					{
+					if (pst.executeUpdate() == 0) {
 						throw new Exception();
 					}
 					
@@ -247,48 +250,33 @@ public class GamerProfile extends Application {
 				
 		});
 		
-		//Add event handlers to display button
-		btnDisplay.setOnAction(e -> {
-			players.clear();
+		//Add event handlers to add game button
+		btnAddGame.setOnAction(e -> {
 			try {
 				//Database driver
 				Class.forName(DRIVER);
 				//Set database connection options
 				conn = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
 				
-				//Create the prepared statement for inserting a player
-				pst = conn.prepareStatement("SELECT * FROM Player");
+				//Create the prepared statement for add a game
+				pst = conn.prepareStatement("INSERT INTO PlayerAndGame (game_id, player_id, playing_date, score) VALUES (?, ?, ?, ?)");
 				
-				//Set ResultSet to query
-				ResultSet playerRS = pst.executeQuery();
+				//Parameters for the statement
+				pst.setInt(1, listOfGames.getSelectionModel().getSelectedIndex());
+				pst.setString(2, userName.getText());
+				pst.setString(3, playingDate.getText());
+				pst.setString(4, score.getText());
+
+				//Execute the statement
+				pst.executeUpdate();
 				
-				while (playerRS.next()) {
-					//Temporary list of games for insert into new Player object
-					List<Game> listOfGames = new ArrayList<Game>();
-					
-					//SQL query for players and games
-					pst = conn.prepareStatement(
-							"SELECT Player.player_id, Game.game_id, Game.game_title "
-							+ "FROM Player "
-							+ "JOIN PlayerAndGame ON Player.player_id = PlayerAndGame.player_id "
-							+ "JOIN Game ON PlayerAndGame.game_id = Game.game_id");
-					//ResultSet for player and game query
-					ResultSet gameRS = pst.executeQuery();
-					
-					while (gameRS.next()) {
-						//If this game record belongs to the player
-						if (gameRS.getString(1).equals(playerRS.getString(1))) {
-							listOfGames.add(new Game(Integer.toString(gameRS.getInt(2)), gameRS.getString(3)));
-						}
-					}
-					//Adds a new Player object to the list of players
-					players.add(new Player(playerRS.getString(1), playerRS.getString(2), playerRS.getString(3), 
-							playerRS.getString(4), playerRS.getString(5), playerRS.getString(6), 
-							playerRS.getString(7), listOfGames));
-					}
-				}
-			catch (Exception ex)
-			{
+				//Alert message on player insert success
+				Alert alert = new Alert(AlertType.INFORMATION, "Playing information has been successfully added!");
+				alert.setHeaderText("Information");
+				alert.setTitle("Information Added");
+				alert.show();
+			}
+			catch (Exception ex) {
 				//Alert message on error
 				Alert alert = new Alert(AlertType.ERROR, ex.getMessage());
 				alert.setHeaderText("Error");
@@ -297,12 +285,14 @@ public class GamerProfile extends Application {
 			}
 			finally {
 				//Close connection and statement; must be surrounded with try/catch
-				try { pst.close(); conn.close(); }
-				catch (Exception ex) {}	
-			}
-			
-		});
-				
+				try {
+					pst.close();
+					conn.close();
+				}
+				catch (Exception ex) {}
+			}});
+		
+		//When the user makes a selection on the table
 		playerTable.getSelectionModel().selectedItemProperty().addListener(e -> {
 			if (playerTable.getSelectionModel().getSelectedItem() != null) {
 				//Clears the list of the selected player's games
@@ -334,6 +324,11 @@ public class GamerProfile extends Application {
 			}
 		});
 		
+		//Populate the player table
+		populateTable();
+		
+		populateComboBox();
+		
 		Scene scene = new Scene(mainLayout);
 			primaryStage.setMinHeight(600);
 			primaryStage.setHeight(500);
@@ -345,5 +340,85 @@ public class GamerProfile extends Application {
 
 	public static void main(String[] args) {
 		launch(args);
+	}
+	
+	//Populates the player table
+	protected void populateTable() {
+		players.clear();
+		try {
+			//Database driver
+			Class.forName(DRIVER);
+			//Set database connection options
+			conn = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
+			
+			//Create the prepared statement for inserting a player
+			pst = conn.prepareStatement("SELECT * FROM Player");
+			
+			//Set ResultSet to query
+			ResultSet playerRS = pst.executeQuery();
+			
+			while (playerRS.next()) {
+				//Temporary list of games for insert into new Player object
+				List<Game> listOfGames = new ArrayList<Game>();
+				
+				//SQL query for players and games
+				pst = conn.prepareStatement(
+						"SELECT Player.player_id, Game.game_id, Game.game_title "
+						+ "FROM Player "
+						+ "JOIN PlayerAndGame ON Player.player_id = PlayerAndGame.player_id "
+						+ "JOIN Game ON PlayerAndGame.game_id = Game.game_id");
+				//ResultSet for player and game query
+				ResultSet gameRS = pst.executeQuery();
+				
+				while (gameRS.next()) {
+					//If this game record belongs to the player
+					if (gameRS.getString(1).equals(playerRS.getString(1))) {
+						listOfGames.add(new Game(Integer.toString(gameRS.getInt(2)), gameRS.getString(3)));
+					}
+				}
+				//Adds a new Player object to the list of players
+				players.add(new Player(playerRS.getString(1), playerRS.getString(2), playerRS.getString(3), 
+						playerRS.getString(4), playerRS.getString(5), playerRS.getString(6), 
+						playerRS.getString(7), listOfGames));
+				}
+			}
+		catch (Exception ex) {}
+		finally {
+			//Close connection and statement; must be surrounded with try/catch
+			try { pst.close(); conn.close(); }
+			catch (Exception ex) {}	
+		}
+		
+	}
+	
+	//Populates the ComboBox
+	protected void populateComboBox()
+	{
+		playersListOfGames.clear();
+		try {
+			//Database driver
+			Class.forName(DRIVER);
+			//Set database connection options
+			conn = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
+			
+			//Create the prepared statement for getting game titles
+			pst = conn.prepareStatement("SELECT game_title FROM Game");
+			
+			//Set ResultSet to query
+			ResultSet gameRS = pst.executeQuery();
+			
+			//Adds the game titles to a list
+			while (gameRS.next()) {
+				playersListOfGames.add(gameRS.getString(1));
+			}
+		}
+		catch (Exception ex) {}
+		finally {
+			//Close connection and statement; must be surrounded with try/catch
+			try { pst.close(); conn.close(); }
+			catch (Exception ex) {}	
+		}
+		
+		listOfGames.setItems(playersListOfGames);
 	}
 }
